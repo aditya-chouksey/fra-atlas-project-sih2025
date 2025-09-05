@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+
+{% block title %}FRA Map - Fra Atlas{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Controls Panel -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Select Location</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="stateSelect" class="form-label">State</label>
+                        <select class="form-select" id="stateSelect">
+                            <option value="">Select State</option>
+                            {% for state in states %}
+                            <option value="{{ state.id }}">{{ state.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="districtSelect" class="form-label">District</label>
+                        <select class="form-select" id="districtSelect" disabled>
+                            <option value="">Select District</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="showOnMap" disabled>Show on Map</button>
+                </div>
+            </div>
+            
+            <!-- District Info Panel -->
+            <div class="card mt-3" id="districtInfo" style="display: none;">
+                <div class="card-header">
+                    <h6 id="districtName">District Info</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h5 class="text-success" id="approvedCount">0</h5>
+                                <small>Approved</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h5 class="text-danger" id="rejectedCount">0</h5>
+                                <small>Rejected</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-center">
+                        <h6 class="text-primary" id="filedCount">0 Total Claims</h6>
+                    </div>
+                    <button class="btn btn-info btn-sm mt-2 w-100" id="getRecommendations">Get Scheme Recommendations</button>
+
+                </div>
+            </div>
+            
+            <!-- Scheme Recommendations Panel -->
+            <div class="card mt-3" id="recommendationsPanel" style="display: none;">
+                <div class="card-header">
+                    <h6>Recommended Schemes</h6>
+                </div>
+                <div class="card-body">
+                    <div id="schemesList"></div>
+                    <div class="mt-3">
+                        <small class="text-muted" id="schemeSummary"></small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scheme Recommendations Panel -->
+            <div class="card mt-3" id="recommendationsPanel" style="display: none;">
+                <div class="card-header">
+                    <h6>Recommended Schemes</h6>
+                </div>
+                <div class="card-body">
+                    <div id="schemesList"></div>
+                    <div class="mt-3">
+                        <small class="text-muted" id="schemeSummary"></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Map Panel -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-body p-0">
+                    <div id="map" style="height: 600px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// Initialize map
+const map = L.map('map').setView([20.5937, 78.9629], 5); // Center of India
+
+// Add tile layer
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+let currentLayer = null;
+let currentPopup = null;
+
+// State selection handler
+document.getElementById('stateSelect').addEventListener('change', function() {
+    const stateId = this.value;
+    const districtSelect = document.getElementById('districtSelect');
+    
+    if (stateId) {
+        // Fetch districts for selected state
+        fetch(`/api/districts/${stateId}/`)
+            .then(response => response.json())
+            .then(districts => {
+                districtSelect.innerHTML = '<option value="">Select District</option>';
+                districts.forEach(district => {
+                    districtSelect.innerHTML += `<option value="${district.id}">${district.name}</option>`;
+                });
+                districtSelect.disabled = false;
+            });
+    } else {
+        districtSelect.innerHTML = '<option value="">Select District</option>';
+        districtSelect.disabled = true;
+        document.getElementById('showOnMap').disabled = true;
+    }
+});
+
+// District selection handler
+document.getElementById('districtSelect').addEventListener('change', function() {
+    const districtId = this.value;
+    document.getElementById('showOnMap').disabled = !districtId;
+});
+
+// Show on map handler
+document.getElementById('showOnMap').addEventListener('click', function() {
+    const districtId = document.getElementById('districtSelect').value;
+    
+    if (districtId) {
+        fetch(`/api/district-geometry/${districtId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.geometry) {
+                    // Remove previous layer
+                    if (currentLayer) {
+                        map.removeLayer(currentLayer);
+                    }
+                    
+                    // Calculate approval rate for color coding
+                    const approvalRate = data.stats.filed > 0 ? (data.stats.approved / data.stats.filed) : 0;
+                    let fillColor = '#ff0000'; // Red for low approval
+                    
+                    if (approvalRate > 0.7) {
+                        fillColor = '#00ff00'; // Green for high approval
+                    } else if (approvalRate > 0.4) {
+                        fillColor = '#ffff00'; // Yellow for medium approval
+                    }
+                    
+                    // Add district boundary to map
+                    currentLayer = L.geoJSON(data.geometry, {
+                        style: {
+                            color: '#333333',
+                            weight: 2,
+                            fillColor: fillColor,
+                            fillOpacity: 0.4
+                        }
+                    }).addTo(map);
+                    
+                    // Add click event to show popup with basic info
+                    currentLayer.on('click', function(e) {
+                        const center = currentLayer.getBounds().getCenter();
+                        const popupContent = `
+                            <div class="text-center">
+                                <h6>${data.name}, ${data.state}</h6>
+                                <p><strong>Filed:</strong> ${data.stats.filed} | <strong>Approved:</strong> ${data.stats.approved}</p>
+                                <button class="btn btn-primary btn-sm" onclick="showSchemePopup(${districtId})">View Recommendations</button>
+                            </div>
+                        `;
+                        
+                        if (currentPopup) {
+                            map.closePopup(currentPopup);
+                        }
+                        
+                        currentPopup = L.popup()
+                            .setLatLng(center)
+                            .setContent(popupContent)
+                            .openOn(map);
+                    });
+                    
+                    // Fit map to district bounds
+                    map.fitBounds(currentLayer.getBounds());
+                    
+                    // Update district info panel
+                    document.getElementById('districtName').textContent = `${data.name}, ${data.state}`;
+                    document.getElementById('filedCount').textContent = `${data.stats.filed} Total Claims`;
+                    document.getElementById('approvedCount').textContent = data.stats.approved;
+                    document.getElementById('rejectedCount').textContent = data.stats.rejected;
+                    document.getElementById('districtInfo').style.display = 'block';
+                    
+                    // Store district ID for recommendations
+                    document.getElementById('getRecommendations').setAttribute('data-district-id', districtId);
+                    
+
+                } else {
+                alert("No map data available for this district to get results search for [ 'madhya pradesh'-'district balaghat' ],[ 'Telangana' - 'district Komaram Bheem'], [ 'chhattisgarah' - 'district Bastar']");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading district data');
+            });
+    }
+});
+
+// Function to show scheme recommendations in popup
+function showSchemePopup(districtId) {
+    fetch(`/api/scheme-recommendations/${districtId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.recommended_schemes) {
+                let schemesHtml = '<div style="max-width: 300px;">';
+                schemesHtml += `<h6 class="text-center mb-3">${data.district}, ${data.state}</h6>`;
+                schemesHtml += '<div style="max-height: 200px; overflow-y: auto;">';
+                
+                data.recommended_schemes.forEach(scheme => {
+                    schemesHtml += `
+                        <div class="mb-2 p-2 border rounded bg-light">
+                            <strong class="text-primary">${scheme.scheme}</strong>
+                            <p class="mb-0 small text-muted">${scheme.reason}</p>
+                        </div>
+                    `;
+                });
+                
+                schemesHtml += '</div>';
+                schemesHtml += `<div class="mt-2"><small class="text-muted">${data.summary}</small></div>`;
+                schemesHtml += '</div>';
+                
+                // Update popup content
+                if (currentPopup) {
+                    currentPopup.setContent(schemesHtml);
+                }
+            } else {
+                alert('No recommendations available for this district');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading recommendations');
+        });
+}
+
+
+
+// Get scheme recommendations handler for sidebar button
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'getRecommendations') {
+        const districtId = e.target.getAttribute('data-district-id');
+        
+        if (districtId) {
+            fetch(`/api/scheme-recommendations/${districtId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.recommended_schemes) {
+                        let schemesHtml = '';
+                        data.recommended_schemes.forEach(scheme => {
+                            schemesHtml += `
+                                <div class="mb-2 p-2 border rounded">
+                                    <strong class="text-primary">${scheme.scheme}</strong>
+                                    <p class="mb-0 small">${scheme.reason}</p>
+                                </div>
+                            `;
+                        });
+                        
+                        document.getElementById('schemesList').innerHTML = schemesHtml;
+                        document.getElementById('schemeSummary').textContent = data.summary;
+                        document.getElementById('recommendationsPanel').style.display = 'block';
+                    } else {
+                        alert('No recommendations available for this district');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error loading recommendations');
+                });
+        }
+    }
+});
+</script>
+{% endblock %}

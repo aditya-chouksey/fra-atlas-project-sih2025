@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FRA Atlas - Home{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+
+    <header class="text-center py-5 rounded-4 shadow-lg" 
+            style="background: linear-gradient(to right, #007bff, #28a745); color: white;">
+        <div class="row align-items-center">
+            <div class="col-md-7 text-md-start p-4">
+                <h1 class="display-3 fw-bolder mb-3 animated-fade-in-down">
+                    FRA Atlas + DSS
+                </h1>
+                <p class="lead mt-3 animated-fade-in-up">
+                    <strong class="text-warning">Visualizing Forest Rights Act</strong> progress and enabling
+                    <span class="text-white">data-driven decisions</span> for inclusive governance.
+                </p>
+                <div class="mt-4 animated-fade-in-up">
+                    <a href="/dashboard" class="btn btn-outline-light btn-lg me-3">
+                        <i class="fas fa-chart-line me-2"></i> Explore Dashboard
+                    </a>
+                    <a href="/map" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-map-marked-alt me-2"></i> Open Atlas & DSS
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-5 d-none d-md-block animated-zoom-in">
+                <img src="{% static '/images.jpeg' %}" 
+                     class="img-fluid rounded-circle shadow-lg" alt="Illustration of a globe with charts" width="300">
+            </div>
+        </div>
+    </header>
+
+    <hr class="my-5">
+
+    <section class="row text-center g-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 rounded-4 shadow-sm feature-card animated-fade-in-left">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <div class="icon-circle mb-3">
+                        <i class="fas fa-chart-bar fa-3x text-primary"></i>
+                    </div>
+                    <h4 class="fw-bold">Data Dashboard</h4>
+                    <p class="text-muted">Interactive charts and filters to track claims filed, approved, and pending.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 rounded-4 shadow-sm feature-card animated-fade-in-up">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <div class="icon-circle mb-3">
+                        <i class="fas fa-map fa-3x text-success"></i>
+                    </div>
+                    <h4 class="fw-bold">Atlas + DSS</h4>
+                    <p class="text-muted">Interactive GIS layers and DSS recommendations for connecting beneficiaries with the right schemes.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 rounded-4 shadow-sm feature-card animated-fade-in-right">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <div class="icon-circle mb-3">
+                        <i class="fas fa-robot fa-3x text-warning"></i>
+                    </div>
+                    <h4 class="fw-bold">AI Vision</h4>
+                    <p class="text-muted">Our next phase: AI-powered satellite imagery analysis for real-time planning and resource allocation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="my-5">
+
+    <section class="row mt-5 justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4 p-4 animated-fade-in-up">
+                <div class="card-body text-center">
+                    <h2 class="fw-bolder mb-4">🚀 Get Started</h2>
+                    <p class="lead text-muted mb-4">
+                        Explore the FRA Atlas dashboard and interactive map to visualize forest rights data.
+                    </p>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="/dashboard" class="btn btn-primary btn-lg me-md-2">
+                            <i class="fas fa-chart-line me-2"></i> View Dashboard
+                        </a>
+                        <a href="/map" class="btn btn-success btn-lg">
+                            <i class="fas fa-map-marked-alt me-2"></i> Open Map
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<style>
+    /* Custom CSS for a more engaging look */
+    body {
+        background-color: #f8f9fa; /* Light gray background */
+    }
+    .hero-bg {
+        background: linear-gradient(to bottom, #007bff, #28a745);
+        color: white;
+    }
+    .feature-card {
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important;
+    }
+    .icon-circle {
+        background-color: white;
+        padding: 20px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    }
+    /* Simple Animations */
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animated-fade-in-down { animation: fadeInDown 0.8s ease-out; }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animated-fade-in-up { animation: fadeInUp 0.8s ease-out; }
+
+    @keyframes fadeInRight {
+        from { opacity: 0; transform: translateX(20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    .animated-fade-in-right { animation: fadeInRight 0.8s ease-out; }
+
+    @keyframes fadeInLeft {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    .animated-fade-in-left { animation: fadeInLeft 0.8s ease-out; }
+
+    @keyframes zoomIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .animated-zoom-in { animation: zoomIn 0.8s ease-out; }
+
+</style>
+
+<script>
+    // Example of adding subtle JS for form validation
+    (function () {
+        'use strict'
+        const forms = document.querySelectorAll('.needs-validation')
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
+
+{% endblock %}

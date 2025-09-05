@@ -1,0 +1,10 @@
+{
+  "type": "FeatureCollection",
+  "name": "focused_districts",
+  "features": [
+    { "type": "Feature", "properties": { "state": "Chhattisgarh", "district": "Bastar" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 81.82, 19.86 ], [ 81.93, 19.85 ], [ 82.02, 19.74 ], [ 82.05, 19.62 ], [ 82.01, 19.38 ], [ 81.91, 19.22 ], [ 81.65, 19.1 ], [ 81.56, 18.9 ], [ 81.39, 18.84 ], [ 81.39, 19.12 ], [ 81.53, 19.33 ], [ 81.71, 19.54 ], [ 81.82, 19.86 ] ] ] } },
+    { "type": "Feature", "properties": { "state": "Madhya Pradesh", "district": "Balaghat" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 80.1, 21.8 ], [ 80.3, 21.9 ], [ 80.4, 21.7 ], [ 80.2, 21.6 ], [ 80.1, 21.8 ] ] ] } },
+    { "type": "Feature", "properties": { "state": "Telangana", "district": "Komaram Bheem" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 79.2, 19.5 ], [ 79.5, 19.4 ], [ 79.7, 19.1 ], [ 79.4, 18.9 ], [ 79.1, 19.0 ], [ 78.9, 19.3 ], [ 79.2, 19.5 ] ] ] } },
+    { "type": "Feature", "properties": { "state": "Telangana", "district": "Mulugu" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 80.2, 18.5 ], [ 80.5, 18.4 ], [ 80.7, 18.1 ], [ 80.4, 17.9 ], [ 80.1, 18.0 ], [ 79.9, 18.3 ], [ 80.2, 18.5 ] ] ] } }
+  ]
+}

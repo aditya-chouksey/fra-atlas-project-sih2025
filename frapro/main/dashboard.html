@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% block title %}FRA Dashboard - Fra Atlas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">FRA Claims Dashboard</h1>
+    
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h5>{{ totals.total_filed }}</h5>
+                    <small>Total Filed</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h5>{{ totals.total_approved }}</h5>
+                    <small>Approved</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h5>{{ totals.total_rejected }}</h5>
+                    <small>Rejected</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h5>{{ totals.total_under_review }}</h5>
+                    <small>Under Review</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-secondary text-white">
+                <div class="card-body text-center">
+                    <h5>{{ totals.total_pending }}</h5>
+                    <small>Pending</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Modal Popup -->
+    <div class="modal fade" id="chartModal" tabindex="-1" aria-labelledby="chartModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="chartModalLabel">Data Visualization</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="dynamicChart" width="400" height="300"></canvas>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- State-wise Data -->
+    {% for state in states %}
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4>{{ state.name }}</h4>
+            <button class="btn btn-sm btn-info" onclick="showStateChart('{{ state.name }}')">
+                <i class="fas fa-chart-bar"></i> View State Chart
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>District</th>
+                            <th>Claims Filed</th>
+                            <th>Approved</th>
+                            <th>Rejected</th>
+                            <th>Under Review</th>
+                            <th>Pending</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for district in state.districts.all %}
+                        {% if district.claim_stats %}
+                        <tr>
+                            <td>{{ district.name }}</td>
+                            <td>{{ district.claim_stats.claims_filed }}</td>
+                            <td><span class="badge bg-success">{{ district.claim_stats.claims_approved }}</span></td>
+                            <td><span class="badge bg-danger">{{ district.claim_stats.claims_rejected }}</span></td>
+                            <td><span class="badge bg-warning">{{ district.claim_stats.claims_under_review }}</span></td>
+                            <td><span class="badge bg-secondary">{{ district.claim_stats.claims_pending }}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="showDistrictChart('{{ district.name }}', {{ district.claim_stats.claims_filed }}, {{ district.claim_stats.claims_approved }}, {{ district.claim_stats.claims_rejected }}, {{ district.claim_stats.claims_under_review }}, {{ district.claim_stats.claims_pending }})">
+                                    <i class="fas fa-chart-pie"></i> Chart
+                                </button>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+let currentChart = null;
+
+// Show district-specific chart
+function showDistrictChart(districtName, filed, approved, rejected, underReview, pending) {
+    document.getElementById('chartModalLabel').textContent = `${districtName} District - Claims Analysis`;
+    
+    if (currentChart) {
+        currentChart.destroy();
+    }
+    
+    const ctx = document.getElementById('dynamicChart').getContext('2d');
+    currentChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Approved', 'Rejected', 'Under Review', 'Pending'],
+            datasets: [{
+                data: [approved, rejected, underReview, pending],
+                backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#6c757d']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' },
+                title: {
+                    display: true,
+                    text: `Total Claims Filed: ${filed}`
+                }
+            }
+        }
+    });
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('chartModal'));
+    modal.show();
+}
+
+// Show state-specific chart
+function showStateChart(stateName) {
+    document.getElementById('chartModalLabel').textContent = `${stateName} State - District Comparison`;
+    
+    // Get state data
+    const stateData = getStateData(stateName);
+    
+    if (currentChart) {
+        currentChart.destroy();
+    }
+    
+    const ctx = document.getElementById('dynamicChart').getContext('2d');
+    currentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: stateData.districts,
+            datasets: [{
+                label: 'Approved',
+                data: stateData.approved,
+                backgroundColor: '#28a745'
+            }, {
+                label: 'Rejected', 
+                data: stateData.rejected,
+                backgroundColor: '#dc3545'
+            }, {
+                label: 'Under Review',
+                data: stateData.underReview,
+                backgroundColor: '#ffc107'
+            }, {
+                label: 'Pending',
+                data: stateData.pending,
+                backgroundColor: '#6c757d'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('chartModal'));
+    modal.show();
+}
+
+// Get state data from DOM
+function getStateData(stateName) {
+    const districts = [];
+    const approved = [];
+    const rejected = [];
+    const underReview = [];
+    const pending = [];
+    
+    // This is a simplified version - you'd extract from the actual table data
+    {% for state in states %}
+    if ('{{ state.name }}' === stateName) {
+        {% for district in state.districts.all %}
+        {% if district.claim_stats %}
+        districts.push('{{ district.name }}');
+        approved.push({{ district.claim_stats.claims_approved }});
+        rejected.push({{ district.claim_stats.claims_rejected }});
+        underReview.push({{ district.claim_stats.claims_under_review }});
+        pending.push({{ district.claim_stats.claims_pending }});
+        {% endif %}
+        {% endfor %}
+    }
+    {% endfor %}
+    
+    return { districts, approved, rejected, underReview, pending };
+}
+
+// Clean up chart when modal is hidden
+document.getElementById('chartModal').addEventListener('hidden.bs.modal', function () {
+    if (currentChart) {
+        currentChart.destroy();
+        currentChart = null;
+    }
+});
+</script>
+{% endblock %}
