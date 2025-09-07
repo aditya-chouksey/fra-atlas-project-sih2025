@@ -38,9 +38,9 @@ def api_districts(request, state_id):
 def api_district_geometry(request, district_id):
     try:
         district = District.objects.get(id=district_id)
-        if district.location:
+        if district.geometry:
             try:
-                geometry = json.loads(district.location)
+                geometry = json.loads(district.geometry)
                 return JsonResponse({
                     'geometry': geometry,
                     'name': district.name,
