@@ -2,8 +2,11 @@ services:
   - type: web
     name: fra-atlas
     env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "python frapro/manage.py runserver 0.0.0.0:$PORT"
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT frapro.wsgi:application
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: DEBUG
+        value: false
