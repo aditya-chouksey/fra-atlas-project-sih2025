@@ -23,6 +23,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-sllahw(_s7g^5sfz7o_^n4kf9oxxr82fc3x*292bfdxu6phymp'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+import os
+
 DEBUG = True
 
 ALLOWED_HOSTS = []
@@ -37,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.gis',
+
     'main',
     'authe',
 ]
@@ -77,7 +79,7 @@ WSGI_APPLICATION = 'frapro.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'frapro',
         'USER': 'postgres',
         'PASSWORD': 'ad213200',
@@ -123,6 +125,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -131,10 +136,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# GDAL Configuration
-import os
-if os.name == 'nt':  # Windows
-    GDAL_LIBRARY_PATH = r'C:\OSGeo4W\bin\gdal311.dll'
-    GEOS_LIBRARY_PATH = r'C:\OSGeo4W\bin\geos_c.dll'
-    os.environ['PATH'] = r'C:\OSGeo4W\bin;' + os.environ['PATH']
+
+
+
 

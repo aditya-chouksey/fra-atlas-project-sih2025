@@ -1,13 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.gis.db import models as gis_models
 
 # Administrative Drawer - States and Districts
 class State(models.Model):
     name = models.CharField(max_length=100, unique=True)
     code = models.CharField(max_length=10, unique=True)
     location = models.CharField(max_length=300, blank=True)
-    geometry = gis_models.PolygonField(help_text="State boundary", null=True, blank=True)
+    geometry = models.TextField(help_text="State boundary JSON", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
@@ -18,7 +17,7 @@ class District(models.Model):
     code = models.CharField(max_length=10)
     state = models.ForeignKey(State, on_delete=models.CASCADE, related_name='districts')
     location = models.CharField(max_length=300, blank=True)
-    geometry = gis_models.PolygonField(help_text="District boundary", null=True, blank=True)
+    geometry = models.TextField(help_text="District boundary JSON", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -52,7 +51,7 @@ class FRAClaim(models.Model):
     district = models.ForeignKey(District, on_delete=models.CASCADE, related_name='fra_claims')
     status = models.CharField(max_length=20, choices=CLAIM_STATUS, default='pending')
     location = models.CharField(max_length=300, blank=True)
-    geometry = gis_models.PolygonField(help_text="Claimed land boundary", null=True, blank=True)
+    geometry = models.TextField(help_text="Claimed land boundary JSON", null=True, blank=True)
     area_claimed = models.DecimalField(max_digits=10, decimal_places=2, help_text="Area in acres")
     date_submitted = models.DateTimeField(auto_now_add=True)
     date_processed = models.DateTimeField(null=True, blank=True)
@@ -61,7 +60,7 @@ class FRAClaim(models.Model):
         return f"{self.claim_number} - {self.district.name}"
 
 # Asset Drawer - Spatial Assets
-class Asset(gis_models.Model):
+class Asset(models.Model):
     ASSET_TYPES = [
         ('water_bodies', 'Water Bodies'),
         ('forest_cover', 'Forest Cover'),
@@ -73,7 +72,7 @@ class Asset(gis_models.Model):
     asset_type = models.CharField(max_length=20, choices=ASSET_TYPES)
     location = models.CharField(max_length=300, blank=True)
     district = models.ForeignKey(District, on_delete=models.CASCADE, related_name='assets', null=True, blank=True)
-    geometry = gis_models.PolygonField(help_text="Spatial boundary of the asset", null=True, blank=True)
+    geometry = models.TextField(help_text="Spatial boundary JSON", null=True, blank=True)
     area = models.DecimalField(max_digits=10, decimal_places=2, help_text="Area in acres")
     identified_by_ai = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -96,7 +95,7 @@ class PattaHolder(models.Model):
     phone = models.CharField(max_length=15, blank=True)
     address = models.TextField()
     location = models.CharField(max_length=300, blank=True)
-    geometry = gis_models.PointField(help_text="Patta holder location", null=True, blank=True)
+    geometry = models.TextField(help_text="Patta holder location JSON", null=True, blank=True)
     district = models.ForeignKey(District, on_delete=models.CASCADE, related_name='patta_holders')
     fra_claim = models.ForeignKey(FRAClaim, on_delete=models.CASCADE, related_name='patta_holders')
     patta_number = models.CharField(max_length=50, unique=True)
