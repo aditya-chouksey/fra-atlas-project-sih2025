@@ -74,4 +74,54 @@ for state_name, district_name, filed, approved, rejected, under_review, pending 
     
     print(f"Loaded data for {district_name}, {state_name}")
 
+# Add Tripura state and districts
+tripura_districts = [
+    ("Tripura", "Dhalai", 2550, 520, 1180, 200, 650),
+    ("Tripura", "Gomati", 1820, 1350, 210, 50, 210),
+    ("Tripura", "Khowai", 2200, 840, 310, 300, 750),
+    ("Tripura", "North Tripura", 3150, 1680, 720, 200, 550),
+    ("Tripura", "Sepahijala", 1230, 760, 160, 100, 210),
+    ("Tripura", "South Tripura", 2890, 1150, 440, 350, 950),
+    ("Tripura", "Unakoti", 950, 610, 110, 50, 180),
+    ("Tripura", "West Tripura", 3510, 1950, 820, 300, 440),
+]
+
+for state_name, district_name, filed, approved, rejected, under_review, pending in tripura_districts:
+    state, created = State.objects.get_or_create(
+        name=state_name,
+        defaults={'code': 'TR'}
+    )
+    if created:
+        print(f"Created state: {state_name}")
+    
+    district, created = District.objects.get_or_create(
+        name=district_name,
+        state=state,
+        defaults={'code': district_name[:3].upper()}
+    )
+    if created:
+        print(f"Created district: {district_name}")
+    
+    stats, created = ClaimStatistics.objects.get_or_create(
+        district=district,
+        defaults={
+            'claims_filed': filed,
+            'claims_approved': approved,
+            'claims_rejected': rejected,
+            'claims_under_review': under_review,
+            'claims_pending': pending,
+        }
+    )
+    if not created:
+        stats.claims_filed = filed
+        stats.claims_approved = approved
+        stats.claims_rejected = rejected
+        stats.claims_under_review = under_review
+        stats.claims_pending = pending
+        stats.save()
+    
+    print(f"Loaded data for {district_name}, {state_name}")
+
 print("Data loading completed!")
+print(f"Total states: {State.objects.count()}")
+print(f"Total districts: {District.objects.count()}")
