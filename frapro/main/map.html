@@ -107,10 +107,25 @@
 // Initialize map
 const map = L.map('map').setView([20.5937, 78.9629], 5); // Center of India
 
-// Add tile layer
+// Add base tile layer
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(map);
+
+// Add satellite layer (Google Satellite as alternative)
+const satelliteLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+    attribution: '© Google Satellite',
+    maxZoom: 20
+});
+
+// Layer control to toggle Bhuvan
+const baseLayers = {
+    "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+};
+const overlayLayers = {
+    "Satellite View": satelliteLayer
+};
+L.control.layers(baseLayers, overlayLayers).addTo(map);
 
 let currentLayer = null;
 let currentPopup = null;
