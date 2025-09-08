@@ -21,6 +21,7 @@ geometry_data = {
         "type": "Polygon",
         "coordinates": [[[78.5, 19.0], [79.5, 19.0], [79.5, 20.0], [78.5, 20.0], [78.5, 19.0]]]
     }
+    
 }
 
 print("Loading geometry data...")
